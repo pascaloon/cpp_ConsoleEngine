@@ -12,11 +12,11 @@ EngineCore::~EngineCore()
 {
 }
 
-void EngineCore::Start(IGraphicsEngine* graphicsEngine)
+void EngineCore::Start(IGraphicsEngine* graphicsEngine, IInputEngine* inputEngine)
 {
 	// Set middleware dependencies
 	_graphicsEngine = graphicsEngine;
-	// ...
+	_inputEngine = inputEngine;
 
 
 	// Engine Looping
@@ -31,6 +31,9 @@ void EngineCore::Start(IGraphicsEngine* graphicsEngine)
 
 void EngineCore::Tick(double deltaTime)
 {
+	// Read Input
+	_inputEngine->ReadKeys(_objects);
+
 	// Update Objects
 	UpdateObjects(deltaTime);
 

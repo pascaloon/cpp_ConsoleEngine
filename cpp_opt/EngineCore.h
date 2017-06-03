@@ -2,6 +2,7 @@
 
 #include "Objects/Object.h"
 #include "IGraphicsEngine.h"
+#include "IInputEngine.h"
 
 class EngineCore
 {
@@ -9,7 +10,7 @@ public:
 	EngineCore();
 	~EngineCore();
 
-	void Start(IGraphicsEngine* graphicsEngine);
+	void Start(IGraphicsEngine* graphicsEngine, IInputEngine* inputEngine);
 	void Tick(double deltaTime);
 	void AddObject(Object* inObject);
 	void UpdateObjects(double deltaTime);
@@ -17,6 +18,7 @@ public:
 private:
 
 	IGraphicsEngine* _graphicsEngine;
+	IInputEngine* _inputEngine;
 
 	ObjectsCollection _objects;
 

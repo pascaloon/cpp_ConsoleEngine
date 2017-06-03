@@ -13,6 +13,7 @@ public:
 	void Update(double deltaTime);
 
 	const Vector3& GetPosition() const { return _position; }
+	Vector3& GetPosition() { return _position; }
 	void SetPosition(const Vector3& inPosition) { _position = inPosition; }
 
 	const Vector3& GetRotation() const { return _rotation; }

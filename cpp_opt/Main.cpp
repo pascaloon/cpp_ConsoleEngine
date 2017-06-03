@@ -3,6 +3,7 @@
 #include "ConsoleGraphicsEngine.h"
 #include <cstdlib>
 #include <time.h>
+#include "ConsoleInputEngine.h"
 
 int randNumber()
 {
@@ -13,7 +14,8 @@ int main()
 {
 	srand(time(0));
 
-	ConsoleGraphicsEngine* ConsoleGraphics = new ConsoleGraphicsEngine;
+	ConsoleGraphicsEngine ConsoleGraphics;
+	ConsoleInputEngine ConsoleInput;
 	EngineCore Engine;
 
 	//for (size_t i = 0; i < 3; i++)
@@ -32,7 +34,7 @@ int main()
 	//o2->SetRotation(Vector3(15, 30, 0));
 	//Engine.AddObject(o2);
 
-	Engine.Start(ConsoleGraphics);
+	Engine.Start(&ConsoleGraphics, &ConsoleInput);
 
 	
 }

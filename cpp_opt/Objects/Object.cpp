@@ -22,7 +22,7 @@ void Object::Update(double deltaTime)
 	_rotation.X += SPEED * deltaTime;
 	_rotation.Y += SPEED * deltaTime;
 
-	_position.X = _posInit.X + ( sin(_totalTime / 1000.0) * 2000.0);
+	//_position.X = _posInit.X + ( sin(_totalTime / 1000.0) * 2000.0);
 
 	_totalTime += deltaTime;
 }

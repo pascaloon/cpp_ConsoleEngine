@@ -144,6 +144,7 @@
   <ItemGroup>
     <ClCompile Include="ConsoleGraphicsEngine.cpp" />
     <ClCompile Include="EngineCore.cpp" />
+    <ClCompile Include="ConsoleInputEngine.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Objects\Object.cpp" />
   </ItemGroup>
@@ -151,6 +152,8 @@
     <ClInclude Include="ConsoleGraphicsEngine.h" />
     <ClInclude Include="EngineCore.h" />
     <ClInclude Include="IGraphicsEngine.h" />
+    <ClInclude Include="IInputEngine.h" />
+    <ClInclude Include="ConsoleInputEngine.h" />
     <ClInclude Include="Objects\Object.h" />
     <ClInclude Include="Primitives.h" />
   </ItemGroup>
