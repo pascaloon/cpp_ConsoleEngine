@@ -12,22 +12,9 @@ ConsoleInputEngine::~ConsoleInputEngine()
 {
 }
 
-void ConsoleInputEngine::ReadKeys(ObjectsCollection& Objects)
+void ConsoleInputEngine::ReadKeys(InputContext& context)
 {
-	//LPCSTR readCharacter = nullptr;
-	//DWORD readCharactersCount = 0;
-	//ReadConsoleA(_console, (LPVOID)readCharacter, 1, &readCharactersCount, NULL);
-
-	//if (readCharactersCount != 0)
-	//{
-	//	return;
-	//}
-
-	//if (readCharactersCount == 1 && *readCharacter == 'w')
-	//	Objects[0]->GetPosition().Y -= 10;
-	//if (readCharactersCount == 1 && *readCharacter == 's')
-	//	Objects[0]->GetPosition().Y += 10;
-
+	
 
 	DWORD eventsCountRead = 0;
 	GetNumberOfConsoleInputEvents(_console, &eventsCountRead);
@@ -52,16 +39,22 @@ void ConsoleInputEngine::ReadKeys(ObjectsCollection& Objects)
 		switch (eventsBuffer[i].Event.KeyEvent.uChar.AsciiChar)
 		{
 		case 'w':
-			Objects[0]->GetPosition().Y -= SPEED;
+			context.Camera.Y -= SPEED;
 			break;
 		case 's':
-			Objects[0]->GetPosition().Y += SPEED;
+			context.Camera.Y += SPEED;
 			break;
 		case 'a':
-			Objects[0]->GetPosition().X -= SPEED;
+			context.Camera.X -= SPEED;
 			break;
 		case 'd':
-			Objects[0]->GetPosition().X += SPEED;
+			context.Camera.X += SPEED;
+			break;
+		case 'q':
+			context.Camera.Z += SPEED;
+			break;
+		case 'z':
+			context.Camera.Z -= SPEED;
 			break;
 		default:
 			break;

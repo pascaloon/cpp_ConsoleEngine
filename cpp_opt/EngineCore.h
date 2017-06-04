@@ -21,6 +21,6 @@ private:
 	IInputEngine* _inputEngine;
 
 	ObjectsCollection _objects;
-
+	
 };
 

@@ -8,6 +8,9 @@ ConsoleGraphicsEngine::ConsoleGraphicsEngine()
 {
 	_console = GetStdHandle(STD_OUTPUT_HANDLE);
 	_refreshTimer = 0.0;
+
+	_camera = Vector3{ 0000, 0000, -2000 };
+
 }
 
 
@@ -115,6 +118,11 @@ void ConsoleGraphicsEngine::DrawObject(double deltaTime, Object* object)
 #endif //DIAGDETAILS
 
 
+	const Vector3 PositionRelativeToCamera = object->GetPosition() - _camera;
+	if (PositionRelativeToCamera.Z <= 0)
+		return;
+
+
 	const static Vector3 POINTS[]{ 		
 		Vector3{ -600,  -600, -600  },
 		Vector3{  600,  -600, -600  },
@@ -173,26 +181,51 @@ void ConsoleGraphicsEngine::DrawObject(double deltaTime, Object* object)
 	double cosRotZ = cos(FromDegrees(rot.Z));
 	double sinRotZ = sin(FromDegrees(rot.Z));
 	Matrix3 rotX{
-		Vector3{ 1,               0,	    0 },
-		Vector3{ 0,         cosRotX, -sinRotX },
-		Vector3{ 0,         sinRotX,  cosRotX }};
+		Vector3{        1,        0,	    0 },
+		Vector3{        0,  cosRotX, -sinRotX },
+		Vector3{        0,  sinRotX,  cosRotX }};
 	Matrix3 rotY{
 		Vector3{  cosRotY,	      0,  sinRotY },
 		Vector3{        0,        1,        0 },
 		Vector3{ -sinRotY,        0,  cosRotY }};
 	Matrix3 rotZ{
-		Vector3{ cosRotZ,  -sinRotZ,        0 },
-		Vector3{ sinRotZ,   cosRotZ,        0 },
-		Vector3{       0,         0,        1 }};
+		Vector3{  cosRotZ,   sinRotZ,        0 },
+		Vector3{ -sinRotZ,   cosRotZ,        0 },
+		Vector3{        0,         0,        1 }};
 
 #if DIAGDETAILS
 	QueryPerformanceCounter(&rotTimePoint);
 #endif //DIAGDETAILS
 
+	const double ez = 1600;
+	CONSOLE_SCREEN_BUFFER_INFO screen;
+	GetConsoleScreenBufferInfo(_console, &screen);
+	double width = screen.dwSize.X * 100.0;
+	double height = screen.dwSize.Y * 100.0;
+
+
 	for (size_t i = 0; i < PIXELSCOUNT; i++)
 	{
-		Vector3 rotated = rotZ * (rotY * (rotX * PIXELS[i]));
-		COORD coord = ProjectToConsoleCoord(object->GetPosition() + rotated);
+
+		const Vector3 rotated = rotZ * (rotY * (rotX * PIXELS[i]));
+		Vector3 tranformed = PositionRelativeToCamera + rotated;
+
+		const double ratioZ = (ez / tranformed.Z) / 0.1;
+
+//		Vector3 projected = tranformed;
+
+		Vector3 projected{
+			ratioZ * tranformed.X, 
+			ratioZ * tranformed.Y, 
+			0.0};
+		
+
+		projected.X += width / 2;
+		projected.Y += height / 8;
+
+		COORD coord = ProjectToConsoleCoord(projected);
+		
+
 		_pixels.emplace(coord);
 		auto pos = _pixelsToClear.find(coord);
 		if (pos != _pixelsToClear.end())
@@ -218,6 +251,6 @@ void ConsoleGraphicsEngine::DrawObject(double deltaTime, Object* object)
 
 COORD ConsoleGraphicsEngine::ProjectToConsoleCoord(const Vector3& position)
 {
-	const int Scale = 100;
-	return{ (SHORT) position.X / Scale, (SHORT) position.Y / Scale };
+	static const double Scale = 100.0;
+	return{ (SHORT) (position.X / Scale), (SHORT) (position.Y / Scale) };
 }

@@ -10,7 +10,7 @@ public:
 	~ConsoleInputEngine();
 
 
-	void ReadKeys(ObjectsCollection& Objects) override;
+	void ReadKeys(InputContext& context) override;
 
 private:
 	HANDLE _console;

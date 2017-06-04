@@ -32,7 +32,7 @@ void EngineCore::Start(IGraphicsEngine* graphicsEngine, IInputEngine* inputEngin
 void EngineCore::Tick(double deltaTime)
 {
 	// Read Input
-	_inputEngine->ReadKeys(_objects);
+	_inputEngine->ReadKeys(InputContext(_objects, _graphicsEngine->GetCamera()));
 
 	// Update Objects
 	UpdateObjects(deltaTime);
