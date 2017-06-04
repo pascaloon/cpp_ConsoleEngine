@@ -47,7 +47,7 @@ void ConsoleInputEngine::ReadKeys(ObjectsCollection& Objects)
 		if (!eventsBuffer[i].Event.KeyEvent.bKeyDown)
 			continue; // Nope
 
-		const double SPEED = 100.0;
+		const double SPEED = 250.0;
 
 		switch (eventsBuffer[i].Event.KeyEvent.uChar.AsciiChar)
 		{

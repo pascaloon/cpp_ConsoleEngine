@@ -2,6 +2,8 @@
 
 #include "IGraphicsEngine.h"
 #include <Windows.h>
+#include <unordered_map>
+#include <unordered_set>
 
 struct Line
 {
@@ -12,6 +14,21 @@ struct Line
 };
 
 
+
+struct COORDKeyHasher
+{
+	std::size_t operator()(const COORD& k) const
+	{
+		return (k.Y * 1000000) + k.X;
+	}
+};
+inline bool operator==(const COORD& lhs, const COORD& rhs)
+{
+	return lhs.X == rhs.X
+		&& lhs.Y == rhs.Y;
+}
+
+
 class ConsoleGraphicsEngine : public IGraphicsEngine
 {
 public:
@@ -20,6 +37,7 @@ public:
 	
 	void Draw(const DrawContext& context) override;
 	void Clear() override;
+	void TotalClear() const;
 
 private:
 	void DrawObjects(const DrawContext& context);
@@ -27,8 +45,11 @@ private:
 	COORD ProjectToConsoleCoord(const Vector3& position);
 private:
 	HANDLE _console;
-	std::vector<COORD>* _usedCoords;
-	std::vector<COORD>* _lastUsedCoords;
+
+	std::unordered_set<COORD, COORDKeyHasher> _pixels;
+	std::unordered_set<COORD, COORDKeyHasher> _pixelsToClear;
+
+	double _refreshTimer;
 
 };
 
