@@ -40,6 +40,21 @@ int main()
 	o3->SetRotation(Vector3(15, 30, 0));
 	Engine.AddObject(o3);
 
+	Object* o4 = new Object;
+	o4->SetPosition(Vector3(8000, 6000, 0));
+	o4->SetRotation(Vector3(15, 30, 0));
+	Engine.AddObject(o4);
+
+	Object* o5 = new Object;
+	o5->SetPosition(Vector3(12000, 6000, 0));
+	o5->SetRotation(Vector3(15, 30, 0));
+	Engine.AddObject(o5);
+
+	Object* o6 = new Object;
+	o6->SetPosition(Vector3(16000, 6000, 0));
+	o6->SetRotation(Vector3(15, 30, 0));
+	Engine.AddObject(o6);
+
 	//Object* o2 = new Object;
 	//o2->SetPosition(Vector3(6000, 1000, 0));
 	//o2->SetRotation(Vector3(15, 30, 0));
