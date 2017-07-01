@@ -34,7 +34,8 @@ void ConsoleInputEngine::ReadKeys(InputContext& context)
 		if (!eventsBuffer[i].Event.KeyEvent.bKeyDown)
 			continue; // Nope
 
-		const double SPEED = 250.0;
+		const double MOVEMENT_SPEED = 250.0;
+		const double ROTATION_SPEED = 5.0;
 
 		Vector3& cameraPosition = context.Camera->GetPosition();
 		Vector3& cameraRotation = context.Camera->GetRotation();
@@ -43,36 +44,36 @@ void ConsoleInputEngine::ReadKeys(InputContext& context)
 		{
 			// Moving Camera
 		case 'w':
-			cameraPosition.Y -= SPEED;
+			cameraPosition.Y -= MOVEMENT_SPEED;
 			break;
 		case 's':
-			cameraPosition.Y += SPEED;
+			cameraPosition.Y += MOVEMENT_SPEED;
 			break;
 		case 'a':
-			cameraPosition.X -= SPEED;
+			cameraPosition.X -= MOVEMENT_SPEED;
 			break;
 		case 'd':
-			cameraPosition.X += SPEED;
+			cameraPosition.X += MOVEMENT_SPEED;
 			break;
 		case 'q':
-			cameraPosition.Z += SPEED;
+			cameraPosition.Z += MOVEMENT_SPEED;
 			break;
 		case 'z':
-			cameraPosition.Z -= SPEED;
+			cameraPosition.Z -= MOVEMENT_SPEED;
 			break;
 
 			// Rotating Camera
 		case 'o':
-			cameraRotation.Y += 1;
+			cameraRotation.Y += ROTATION_SPEED;
 			break;
 		case 'p':
-			cameraRotation.Y -= 1;
+			cameraRotation.Y -= ROTATION_SPEED;
 			break;
 		case 'i':
-			cameraRotation.X += 1;
+			cameraRotation.X += ROTATION_SPEED;
 			break;
 		case 'k':
-			cameraRotation.X -= 1;
+			cameraRotation.X -= ROTATION_SPEED;
 			break;
 
 			// Other

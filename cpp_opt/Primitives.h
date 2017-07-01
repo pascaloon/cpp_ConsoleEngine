@@ -1,5 +1,16 @@
 #pragma once
 
+#include <cmath>
+
+class Matrix4;
+class Vector3;
+class Vector4;
+
+Vector3 operator*(double, const Vector3&);
+Vector3 operator*(const Vector3&, double);
+
+inline Matrix4 operator*(const Matrix4&, const Matrix4&);
+
 class Vector3
 {
 public:
@@ -10,10 +21,26 @@ public:
 
 	double operator[](size_t i) const { return i == 0 ? X : (i == 1 ? Y : Z); }
 
+	static Vector3 Cross(const Vector3& a, const Vector3& b)
+	{
+		return Vector3((a.Y * b.Z) - (a.Z * b.Y), (a.Z * b.X) - (a.X * b.Z), (a.X * b.Y) - (a.Y * b.X));
+	}
+
+	static double Norm(const Vector3& v)
+	{
+		return sqrt((v.X * v.X) + (v.Y * v.Y) + (v.Z * v.Z));
+	}
+
+	static Vector3 Unit(const Vector3& v)
+	{
+		return (1.0 / Norm(v)) * v;
+	}
+	
 
 	double X;
 	double Y;
 	double Z;
+	static const Vector3 Zero;
 
 private:
 
@@ -51,6 +78,7 @@ inline bool operator!=(const Vector3& lhs, const Vector3& rhs)
 	return !(lhs == rhs);
 }
 
+
 inline Vector3 operator+(const Vector3& lhs, const Vector3& rhs)
 {
 	return Vector3(lhs.X + rhs.X, lhs.Y + rhs.Y, lhs.Z + rhs.Z);
@@ -66,6 +94,11 @@ inline Vector3 operator*(const Vector3& lhs, double v)
 inline Vector3 operator*(double v, const Vector3& rhs)
 {
 	return Vector3(rhs.X * v, rhs.Y * v, rhs.Z * v);
+}
+
+inline Vector3 operator-(const Vector3& v)
+{
+	return Vector3(-v.X, -v.Y, -v.Z);
 }
 
 // Dot Product
@@ -93,7 +126,12 @@ public:
 	~Vector4() {}
 
 	double operator[](size_t i) const { return i == 0 ? X : (i == 1 ? Y : (i == 2 ? Z : W)); }
+	double& operator[](size_t i) { return i == 0 ? X : (i == 1 ? Y : (i == 2 ? Z : W)); }
 
+	Vector3 XYZ() const
+	{
+		return Vector3{ X, Y, Z };
+	}
 
 	double X;
 	double Y;
@@ -176,6 +214,43 @@ public:
 			Vector4{ 0,	  0,  0,			   1 }};
 	}
 
+	static Matrix4 LookAtMatrix(const Vector3& eye, const Vector3& at, const Vector3& up)
+	{
+		Vector3 zAxis = Vector3::Unit(at - eye);
+		Vector3 xAxis = Vector3::Unit(Vector3::Cross(up, zAxis));
+		Vector3 yAxis = Vector3::Cross(zAxis, xAxis);
+
+		// s = x; u = y; f = z;
+		return
+		Matrix4 {
+			Vector4{  xAxis.X,         xAxis.Y,          xAxis.Z,   0 },
+			Vector4{  yAxis.X,         yAxis.Y,          yAxis.Z,   0 },
+			Vector4{ -zAxis.X,        -zAxis.Y,         -zAxis.Z,   0 },
+			Vector4{        0,               0,                0,   1 } }
+		*
+		Matrix4{
+			Vector4{ 1,        0,       0,   -eye.X },
+			Vector4{ 0,        1,       0,   -eye.Y },
+			Vector4{ 0,        0,       1,   -eye.Z },
+			Vector4{ 0,        0,       0,   1 } };
+
+
+
+		/*return Matrix4{
+			Vector4{        xAxis.X,          yAxis.X,          zAxis.X,   0 },
+			Vector4{        xAxis.Y,          yAxis.Y,          zAxis.Y,   0 },
+			Vector4{        -xAxis.Z,          -yAxis.Z,          -zAxis.Z,   0 },
+			Vector4{ xAxis * (-eye),   yAxis * (-eye),   zAxis * (-eye),   1 } };*/
+	}
+
+	static Matrix4 PerspectiveMatrix(double near, double far, double top, double bottom, double left, double right)
+	{
+		return Matrix4{
+			Vector4{ 2.0 * near / (right - left),                           0,             (right+left)/(right-left),                                 0 },
+			Vector4{						   0,  2.0 * near / (top - bottom),      (top + bottom) / (top - bottom),                                 0 },
+			Vector4{						   0,                           0,           (far + near) / (far - near),   -2.0 * far* near / (far - near) },
+			Vector4{						   0,                           0,                                  -1.0,                                 1 } };
+	}
 
 private:
 	Vector4 _rows[4];
@@ -224,6 +299,41 @@ inline Vector4 operator*(const Matrix4& lhs, const Vector4& rhs)
 		(lhs[1][0] * rhs[0]) + (lhs[1][1] * rhs[1]) + (lhs[1][2] * rhs[2]) + (lhs[1][3] * rhs[3]),
 		(lhs[2][0] * rhs[0]) + (lhs[2][1] * rhs[1]) + (lhs[2][2] * rhs[2]) + (lhs[2][3] * rhs[3]),
 		(lhs[3][0] * rhs[0]) + (lhs[3][1] * rhs[1]) + (lhs[3][2] * rhs[2]) + (lhs[3][3] * rhs[3]));
+}
+
+inline Matrix4 operator*(const Matrix4& lhs, const Matrix4& rhs)
+{
+	Matrix4 out;
+
+	for (size_t i = 0; i < 4; i++)
+	{ 
+		for (size_t j = 0; j < 4; j++)
+		{
+			out[i][j] = 0.0;
+			for (size_t k = 0; k < 4; k++)
+			{
+				out[i][j] += lhs[i][k] * rhs[k][j];
+			}
+
+		}
+	}
+
+	return out;
+}
+
+inline Matrix4 operator*(double lhs, const Matrix4& rhs)
+{
+	Matrix4 out;
+
+	for (size_t i = 0; i < 4; i++)
+	{
+		for (size_t j = 0; j < 4; j++)
+		{
+			out[i][j] = rhs[i][j] * lhs;
+		}
+	}
+
+	return out;
 }
 
 #define PI 3.14159265

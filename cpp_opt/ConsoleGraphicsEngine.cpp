@@ -202,26 +202,6 @@ void ConsoleGraphicsEngine::DrawObject(double deltaTime, Object* object)
 	Matrix4 rotCX = Matrix4::CreateRotationMatrixX(rotc.X);
 	Matrix4 rotCY = Matrix4::CreateRotationMatrixY(rotc.Y);
 	Matrix4 rotCZ = Matrix4::CreateRotationMatrixZ(rotc.Z);
-	
-	const Vector3& posc = _camera->GetPosition();
-
-	//const Vector3& rotc = _camera->GetRotation();
-
-	float cosPitch = cos(FromDegrees(rotc.X));
-	float sinPitch = sin(FromDegrees(rotc.X));
-	float cosYaw = cos(FromDegrees(rotc.Y));
-	float sinYaw = sin(FromDegrees(rotc.Y));
-
-	Vector3 xaxis { cosYaw, 0, -sinYaw };
-	Vector3 yaxis { sinYaw * sinPitch, cosPitch, cosYaw * sinPitch };
-	Vector3 zaxis { sinYaw * cosPitch, -sinPitch, cosPitch * cosYaw };
-
-	const Matrix4 rotC {
-		Vector4(        xaxis.X,            yaxis.X,            zaxis.X,      0),
-		Vector4(        xaxis.Y,            yaxis.Y,            zaxis.Y,      0),
-		Vector4(        xaxis.Z,            yaxis.Z,            zaxis.Z,      0),
-		Vector4(-(xaxis * posc),    -(yaxis * posc),    -(zaxis * posc),	  1)
-	};
 
 	// Tc
 	Matrix4 transC = Matrix4::CreateTranslationMatrix(_camera->GetPosition());
@@ -242,34 +222,51 @@ void ConsoleGraphicsEngine::DrawObject(double deltaTime, Object* object)
 	double height = screen.dwSize.Y * 100.0;
 
 
+	//const Matrix4 viewMatrix = (-1.0 * transC) * (rotCZ * (rotCY * (rotCX)));
+	const Vector4 viewDirection = rotCZ * (rotCY * (rotCX * Vector4{ 0, 0, 1, 1 }));
+	const Matrix4 viewMatrix = Matrix4::LookAtMatrix(
+		_camera->GetPosition(), 
+		_camera->GetPosition() + viewDirection.XYZ(),
+		Vector3{ 0, 1, 0 }
+	);
 
+	const double FOV = 90.0;
+	const double aspect = 1;
+
+	const double nearp = 100.0;
+	const double farp = 1000.0;
+	const double top = nearp * (FromDegrees(FOV) / 2);
+	const double bottom = -top;
+	const double right = top * aspect;
+	const double left = -right;
+
+	const Matrix4 perspectiveMatrix = Matrix4::PerspectiveMatrix(
+		nearp, farp,
+		top, bottom,
+		left, right
+	);
 
 	for (size_t i = 0; i < PIXELSCOUNT; i++)
 	{
 
-		const Vector4 worldTransformed = transV * (rotVZ * (rotVY * (rotVX * (scaleV * Vector4{ PIXELS[i], 1}))));
-		//Vector4 viewTransformed = transC * (rotC * (scaleC * worldTransformed));
-		Vector4 viewTransformed = transC * (rotVZ * (rotCY * (rotCX * (scaleC * worldTransformed))));
-		//Vector3 tranformed = PositionRelativeToCamera + rotated;
+		const Vector4 vertexPosition = Vector4{ PIXELS[i], 1 };
 
-		const double ratioZ = (ez / viewTransformed.Z) / 0.1;
-
-		//viewTransformed.X -= posc.X;
-		//viewTransformed.Y -= posc.Y;
-		//viewTransformed.Z -= posc.Z;
-
-//		Vector3 projected = tranformed;
-
-		Vector3 projected{
-			ratioZ * viewTransformed.X,
-			ratioZ * viewTransformed.Y,
-			0.0};
-
-		projected.X += width / 2;
-		projected.Y += height / 8;
-
-		COORD coord = ProjectToConsoleCoord(projected);
+		const Matrix4 modelMatrix = transV * (rotVZ * (rotVY * (rotVX * (scaleV))));
 		
+
+		
+
+		const Vector4 transformedPosition = perspectiveMatrix * (viewMatrix * (modelMatrix * vertexPosition));
+
+		const double ratioZ = (ez / transformedPosition.Z) / 0.1;
+		Vector3 projectedPosition{
+			ratioZ * transformedPosition.X,
+			ratioZ * transformedPosition.Y,
+			0.0 };
+		projectedPosition.X += width / 2;
+		projectedPosition.Y += height / 8;
+		COORD coord = ProjectToConsoleCoord(projectedPosition);
+
 
 		_pixels.emplace(coord);
 		auto pos = _pixelsToClear.find(coord);
