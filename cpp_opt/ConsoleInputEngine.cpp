@@ -36,26 +36,46 @@ void ConsoleInputEngine::ReadKeys(InputContext& context)
 
 		const double SPEED = 250.0;
 
+		Vector3& cameraPosition = context.Camera->GetPosition();
+		Vector3& cameraRotation = context.Camera->GetRotation();
+
 		switch (eventsBuffer[i].Event.KeyEvent.uChar.AsciiChar)
 		{
+			// Moving Camera
 		case 'w':
-			context.Camera.Y -= SPEED;
+			cameraPosition.Y -= SPEED;
 			break;
 		case 's':
-			context.Camera.Y += SPEED;
+			cameraPosition.Y += SPEED;
 			break;
 		case 'a':
-			context.Camera.X -= SPEED;
+			cameraPosition.X -= SPEED;
 			break;
 		case 'd':
-			context.Camera.X += SPEED;
+			cameraPosition.X += SPEED;
 			break;
 		case 'q':
-			context.Camera.Z += SPEED;
+			cameraPosition.Z += SPEED;
 			break;
 		case 'z':
-			context.Camera.Z -= SPEED;
+			cameraPosition.Z -= SPEED;
 			break;
+
+			// Rotating Camera
+		case 'o':
+			cameraRotation.Y += 1;
+			break;
+		case 'p':
+			cameraRotation.Y -= 1;
+			break;
+		case 'i':
+			cameraRotation.X += 1;
+			break;
+		case 'k':
+			cameraRotation.X -= 1;
+			break;
+
+			// Other
 		default:
 			break;
 		}

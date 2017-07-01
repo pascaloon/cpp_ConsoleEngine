@@ -3,12 +3,12 @@
 
 struct InputContext
 {
-	InputContext(ObjectsCollection& inObjects, Vector3& inCamera)
+	InputContext(ObjectsCollection& inObjects, Object* inCamera)
 		: Objects(inObjects)
 		, Camera(inCamera)
 	{ }
 	ObjectsCollection& Objects;
-	Vector3& Camera;
+	Object* Camera;
 };
 
 class IInputEngine

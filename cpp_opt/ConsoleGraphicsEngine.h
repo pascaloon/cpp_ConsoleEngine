@@ -36,7 +36,7 @@ public:
 	~ConsoleGraphicsEngine();
 	
 	void Draw(const DrawContext& context) override;
-	Vector3& GetCamera() override { return _camera; };
+	Object* GetCamera() override { return _camera; };
 	void Clear() override;
 	void TotalClear() const;
 
@@ -51,6 +51,6 @@ private:
 	std::unordered_set<COORD, COORDKeyHasher> _pixelsToClear;
 
 	double _refreshTimer;
-	Vector3 _camera;
+	Object* _camera;
 };
 

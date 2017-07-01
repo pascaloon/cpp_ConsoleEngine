@@ -24,6 +24,6 @@ public:
 	virtual void Draw(const DrawContext& context) = 0;
 	virtual void Clear() = 0;
 
-	virtual Vector3& GetCamera() = 0;
+	virtual Object* GetCamera() = 0;
 };
 

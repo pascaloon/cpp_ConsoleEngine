@@ -9,7 +9,8 @@ ConsoleGraphicsEngine::ConsoleGraphicsEngine()
 	_console = GetStdHandle(STD_OUTPUT_HANDLE);
 	_refreshTimer = 0.0;
 
-	_camera = Vector3{ 0000, 0000, -2000 };
+	_camera = new Object;
+	_camera->SetPosition(Vector3{ 0000, 0000, -8000 });
 
 }
 
@@ -46,6 +47,12 @@ void ConsoleGraphicsEngine::Draw(const DrawContext& context)
 	double clearTime = (static_cast<double>(clear.QuadPart - draw.QuadPart) / freq.QuadPart);
 	double fps = 1.0 / (static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart);
 	printf("General:\n\tFPS: %fs\n\tDraw time: %fs\n\tClear time: %fs\n\n", fps, drawTime, clearTime);
+
+	Vector3& cameraPos = _camera->GetPosition();
+	Vector3& cameraRot = _camera->GetRotation();
+	printf("Camera:\n\tPosition: (%f, %f, %f)\n\tRotation: (%f, %f, %f)\n\n", 
+		cameraPos.X, cameraPos.Y, cameraPos.Z,
+		cameraRot.X, cameraRot.Y, cameraRot.Z);
 #endif // DIAG
 
 }
@@ -118,9 +125,7 @@ void ConsoleGraphicsEngine::DrawObject(double deltaTime, Object* object)
 #endif //DIAGDETAILS
 
 
-	const Vector3 PositionRelativeToCamera = object->GetPosition() - _camera;
-	if (PositionRelativeToCamera.Z <= 0)
-		return;
+	const Vector3 PositionRelativeToCamera = object->GetPosition() - _camera->GetPosition();
 
 
 	const static Vector3 POINTS[]{ 		
@@ -172,26 +177,59 @@ void ConsoleGraphicsEngine::DrawObject(double deltaTime, Object* object)
 #if DIAGDETAILS
 	QueryPerformanceCounter(&linesTimePoint);
 #endif //DIAGDETAILS
+		
+	// P x TRSc x TRSv x V
+	
+	// Sv
+	Matrix4 scaleV = Matrix4::CreateScaleMatrix(object->GetScale());
 
-	const Vector3& rot = object->GetRotation();
-	double cosRotX = cos(FromDegrees(rot.X));
-	double sinRotX = sin(FromDegrees(rot.X));
-	double cosRotY = cos(FromDegrees(rot.Y));
-	double sinRotY = sin(FromDegrees(rot.Y));
-	double cosRotZ = cos(FromDegrees(rot.Z));
-	double sinRotZ = sin(FromDegrees(rot.Z));
-	Matrix3 rotX{
-		Vector3{        1,        0,	    0 },
-		Vector3{        0,  cosRotX, -sinRotX },
-		Vector3{        0,  sinRotX,  cosRotX }};
-	Matrix3 rotY{
-		Vector3{  cosRotY,	      0,  sinRotY },
-		Vector3{        0,        1,        0 },
-		Vector3{ -sinRotY,        0,  cosRotY }};
-	Matrix3 rotZ{
-		Vector3{  cosRotZ,   sinRotZ,        0 },
-		Vector3{ -sinRotZ,   cosRotZ,        0 },
-		Vector3{        0,         0,        1 }};
+	// Rv
+	const Vector3& rotv = object->GetRotation();
+	Matrix4 rotVX = Matrix4::CreateRotationMatrixX(rotv.X);
+	Matrix4 rotVY = Matrix4::CreateRotationMatrixY(rotv.Y);
+	Matrix4 rotVZ = Matrix4::CreateRotationMatrixZ(rotv.Z);
+
+	// Tv
+	Matrix4 transV = Matrix4::CreateTranslationMatrix(object->GetPosition());
+	//Matrix4 transV = Matrix4::CreateTranslationMatrix(PositionRelativeToCamera);
+
+
+	// Sc
+	Matrix4 scaleC = Matrix4::CreateScaleMatrix(_camera->GetScale());
+
+	// Rc
+	const Vector3& rotc = _camera->GetRotation();
+	Matrix4 rotCX = Matrix4::CreateRotationMatrixX(rotc.X);
+	Matrix4 rotCY = Matrix4::CreateRotationMatrixY(rotc.Y);
+	Matrix4 rotCZ = Matrix4::CreateRotationMatrixZ(rotc.Z);
+	
+	const Vector3& posc = _camera->GetPosition();
+
+	//const Vector3& rotc = _camera->GetRotation();
+
+	float cosPitch = cos(FromDegrees(rotc.X));
+	float sinPitch = sin(FromDegrees(rotc.X));
+	float cosYaw = cos(FromDegrees(rotc.Y));
+	float sinYaw = sin(FromDegrees(rotc.Y));
+
+	Vector3 xaxis { cosYaw, 0, -sinYaw };
+	Vector3 yaxis { sinYaw * sinPitch, cosPitch, cosYaw * sinPitch };
+	Vector3 zaxis { sinYaw * cosPitch, -sinPitch, cosPitch * cosYaw };
+
+	const Matrix4 rotC {
+		Vector4(        xaxis.X,            yaxis.X,            zaxis.X,      0),
+		Vector4(        xaxis.Y,            yaxis.Y,            zaxis.Y,      0),
+		Vector4(        xaxis.Z,            yaxis.Z,            zaxis.Z,      0),
+		Vector4(-(xaxis * posc),    -(yaxis * posc),    -(zaxis * posc),	  1)
+	};
+
+	// Tc
+	Matrix4 transC = Matrix4::CreateTranslationMatrix(_camera->GetPosition());
+
+
+	
+
+	
 
 #if DIAGDETAILS
 	QueryPerformanceCounter(&rotTimePoint);
@@ -204,21 +242,28 @@ void ConsoleGraphicsEngine::DrawObject(double deltaTime, Object* object)
 	double height = screen.dwSize.Y * 100.0;
 
 
+
+
 	for (size_t i = 0; i < PIXELSCOUNT; i++)
 	{
 
-		const Vector3 rotated = rotZ * (rotY * (rotX * PIXELS[i]));
-		Vector3 tranformed = PositionRelativeToCamera + rotated;
+		const Vector4 worldTransformed = transV * (rotVZ * (rotVY * (rotVX * (scaleV * Vector4{ PIXELS[i], 1}))));
+		//Vector4 viewTransformed = transC * (rotC * (scaleC * worldTransformed));
+		Vector4 viewTransformed = transC * (rotVZ * (rotCY * (rotCX * (scaleC * worldTransformed))));
+		//Vector3 tranformed = PositionRelativeToCamera + rotated;
 
-		const double ratioZ = (ez / tranformed.Z) / 0.1;
+		const double ratioZ = (ez / viewTransformed.Z) / 0.1;
+
+		//viewTransformed.X -= posc.X;
+		//viewTransformed.Y -= posc.Y;
+		//viewTransformed.Z -= posc.Z;
 
 //		Vector3 projected = tranformed;
 
 		Vector3 projected{
-			ratioZ * tranformed.X, 
-			ratioZ * tranformed.Y, 
+			ratioZ * viewTransformed.X,
+			ratioZ * viewTransformed.Y,
 			0.0};
-		
 
 		projected.X += width / 2;
 		projected.Y += height / 8;

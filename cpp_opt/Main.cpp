@@ -26,12 +26,19 @@ int main()
 	//	Engine.AddObject(o);
 	//}
 	Object* o1 = new Object;
-	o1->SetPosition(Vector3(0000,    0,   2000));
+	o1->SetPosition(Vector3(-2000,    0,   2000));
+	o1->GetScale().X = o1->GetScale().Y = o1->GetScale().Z = 1;
 	Engine.AddObject(o1);
-
+	
 	Object* o2 = new Object;
-	o2->SetPosition(Vector3(4000, 0, 2000));
+	o2->SetPosition(Vector3(2000, 0, 2000));
+	o2->GetScale().X = o2->GetScale().Y = o2->GetScale().Z = 1;
 	Engine.AddObject(o2);
+
+	//Object* o2 = new Object;
+	//o2->SetPosition(Vector3(4000, 0, 6000));
+	//o2->GetScale().Y = 0.25;
+	//Engine.AddObject(o2);
 
 	/*Object* o2 = new Object;
 	o2->SetPosition(Vector3(12000, 2000, 0));
